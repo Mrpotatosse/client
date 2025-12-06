@@ -1,0 +1,6 @@
+import ky from "ky";
+
+export const api = ky.extend({
+  prefixUrl: import.meta.env.VITE_SERVER_PREFIX_URL,
+  headers: {}
+});

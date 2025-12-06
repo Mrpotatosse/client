@@ -1,12 +1,10 @@
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import {keycloak} from "@/globals/keycloak.global.ts";
-import {useToast} from "primevue";
 
 export const useAuthStore =
   defineStore("auth", () => {
     const authenticated = ref(false);
-    const toast = useToast();
 
     const init = async () => {
       await keycloak

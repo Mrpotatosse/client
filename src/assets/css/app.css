@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
+
+body {
+  @apply p-2;
+}
+
+#app {
+  @apply flex flex-col gap-2;
+}

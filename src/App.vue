@@ -1,13 +1,13 @@
 <template>
   <header>
-    <BaseMenubar/>
+    <TnNavbar/>
   </header>
   <RouterView/>
   <Toast/>
 </template>
 
 <script lang="ts" setup>
-import BaseMenubar from "@/components/BaseMenubar.vue";
+import TnNavbar from "@/components/TnNavbar.vue";
 </script>
 
 <style scoped></style>

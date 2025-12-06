@@ -1,5 +1,5 @@
 <template>
-  <div>{{ t("hello.world") }}</div>
+  <div>{{ t("app.about.title") }}</div>
 </template>
 
 <script lang="ts" setup>
