@@ -2,12 +2,17 @@
   <Toolbar>
     <template #start>
       <div class="flex gap-2">
-        <Button icon="pi pi-home"
-                severity="secondary"
-                text
+        <Button :text="!isSelected('home')"
+                icon="pi pi-home"
+                severity="primary"
                 @click="router.push({name: 'home'})"/>
-        <RouterLink v-role-required="'reference-manager'" :to="{name: 'references'}">
-          <Button :label="t('app.references')" severity="secondary" text/>
+        <RouterLink v-for="(item, index) in props.items"
+                    :key="index"
+                    v-role-required="item.role"
+                    :to="{name: item.route}">
+          <Button :label="item.label"
+                  :text="!isSelected(item.route)"
+                  severity="primary"/>
         </RouterLink>
       </div>
     </template>
@@ -29,11 +34,15 @@ import {useAuthStore} from "@/stores/auth.store.ts";
 import {Menu, type MenuMethods} from "primevue";
 import {useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
+import type {NavbarItem} from "@/components/navbar/types.ts";
 
 const {isAuthenticated, login, logout} = useAuthStore();
 const router = useRouter();
 const {t} = useI18n();
 
+const props = defineProps<{
+  items: NavbarItem[]
+}>();
 const menu = ref<MenuMethods>();
 
 const menuItems = computed<MenuItem[]>(() => {
@@ -65,6 +74,17 @@ const menuItems = computed<MenuItem[]>(() => {
 
 const toggle = (event: PointerEvent) => {
   menu.value?.toggle(event);
+};
+
+const isSelected = (routeName: string) => {
+  const route = router.currentRoute.value;
+  if (!route) return false;
+
+  // current route name
+  if (route.name === routeName) return true;
+
+  // any matched child route names
+  return route.matched.some(r => r.name === routeName);
 };
 </script>
 

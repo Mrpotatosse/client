@@ -1,9 +1,13 @@
 <template>
-  <div>seems like you are lost</div>
+  <div class="fluid-flex-centered">
+    {{ t("app.error.lost") }}
+  </div>
 </template>
 
 <script lang="ts" setup>
+import {useI18n} from "vue-i18n";
 
+const {t} = useI18n();
 </script>
 
 <style scoped>

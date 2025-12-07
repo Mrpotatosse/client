@@ -29,7 +29,15 @@ const router = createRouter({
       name: "references",
       path: "/references",
       component: ReferencesView, // todo: dynamic import
-      meta: {requiresAuth: true}
+      meta: {requiresAuth: true},
+      children: [
+        {
+          name: "references-select",
+          path: ":name",
+          component: ReferencesView, // todo: dynamic import
+          meta: {requiresAuth: true}
+        }
+      ]
     },
     {
       name: "error",

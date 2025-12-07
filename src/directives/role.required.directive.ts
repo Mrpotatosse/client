@@ -12,7 +12,7 @@ const directive: Directive<RoleRequiredElement, string> = {
   mounted(el, binding) {
     const auth = useAuthStore();
     const role = binding.value;
-    
+
     // If user does NOT have the role, replace the element with the placeholder
     if (!auth.hasRole(role) && el.__placeholder) {
       el.parentNode?.replaceChild(el.__placeholder, el);

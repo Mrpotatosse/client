@@ -37,7 +37,6 @@ export const deleteErrorToast: TnToastMessage<string> = (reference) => ({
   detail: i18n.global.t("app.reference.delete.failed", reference), life: 3000
 });
 
-
 export const updateSuccessToast: TnToastMessage<string> = (reference) => ({
   severity: "success",
   summary: i18n.global.t("app.success"),

@@ -1,5 +1,6 @@
 <template>
   <div>{{ t("app.about.title") }}</div>
+  <RouterLink to="/references/test">go</RouterLink>
 </template>
 
 <script lang="ts" setup>

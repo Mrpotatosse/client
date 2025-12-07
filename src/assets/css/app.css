@@ -2,10 +2,30 @@
 @import "tailwindcss-primeui";
 @import "primeicons/primeicons.css";
 
+* {
+  @apply min-h-0 min-w-0;
+}
+
+html {
+  @apply w-full h-full;
+}
+
 body {
-  @apply p-2;
+  @apply p-2 w-full h-full;
 }
 
 #app {
-  @apply flex flex-col gap-2;
+  @apply flex flex-col gap-2 w-full h-full;
+
+  main {
+    @apply flex-1;
+  }
+}
+
+.fluid-flex-centered {
+  @apply w-full h-full flex justify-center items-center;
+}
+
+.full {
+  @apply w-full h-full;
 }
