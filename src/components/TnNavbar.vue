@@ -6,8 +6,9 @@
                 severity="secondary"
                 text
                 @click="router.push({name: 'home'})"/>
-        <Button icon="pi pi-print" severity="secondary" text/>
-        <Button icon="pi pi-upload" severity="secondary" text/>
+        <RouterLink v-role-required="'reference-manager'" :to="{name: 'references'}">
+          <Button :label="t('app.references')" severity="secondary" text/>
+        </RouterLink>
       </div>
     </template>
 
@@ -16,7 +17,7 @@
               severity="secondary"
               text
               @click="toggle"></Button>
-      <Menu id="navbar-menu" ref="menu" :model="items" popup/>
+      <Menu id="navbar-menu" ref="menu" :model="menuItems" popup/>
     </template>
   </Toolbar>
 </template>
@@ -35,7 +36,7 @@ const {t} = useI18n();
 
 const menu = ref<MenuMethods>();
 
-const items = computed<MenuItem[]>(() => {
+const menuItems = computed<MenuItem[]>(() => {
   const list: MenuItem[] = [{
     label: t("app.about"),
     icon: "pi pi-info-circle",

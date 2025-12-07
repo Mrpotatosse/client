@@ -5,6 +5,8 @@ import {keycloak} from "@/globals/keycloak.global.ts";
 export const useAuthStore =
   defineStore("auth", () => {
     const authenticated = ref(false);
+    const token = ref<string>();
+    const roles = ref<string[]>([]);
 
     const init = async () => {
       await keycloak
@@ -20,10 +22,31 @@ export const useAuthStore =
       .then(() => authenticated.value = keycloak.authenticated);
 
     const logout = async () => await keycloak
-      .logout({redirectUri: window.location.href})
+      .logout({redirectUri: window.location.origin})
       .then(() => authenticated.value = keycloak.authenticated);
+
+    const hasRole = (role: string) => {
+      if (roles.value.length === 0) return false;
+      return roles.value.some(r => r === role);
+    };
 
     const isAuthenticated = computed(() => authenticated);
 
-    return {init, login, logout, isAuthenticated};
+    const updateData = () => {
+      token.value = keycloak.token;
+      roles.value = keycloak.tokenParsed?.realm_access?.roles ?? [];
+    };
+
+    const clearData = () => {
+      token.value = undefined;
+      roles.value = [];
+    };
+
+    keycloak.onAuthSuccess = updateData;
+    keycloak.onAuthRefreshSuccess = updateData;
+
+    keycloak.onAuthError = clearData;
+    keycloak.onAuthRefreshError = clearData;
+
+    return {init, login, logout, isAuthenticated, token, roles, hasRole};
   });
