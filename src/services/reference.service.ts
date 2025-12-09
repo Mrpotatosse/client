@@ -1,37 +1,81 @@
 import {api} from "@/clients";
-import {type ToastServiceMethods} from "primevue";
+import type {ToastServiceMethods} from "primevue";
 import {
   createErrorToast,
   createSuccessToast,
-  deleteErrorToast,
   deleteSuccessToast,
-  getErrorToast,
   getSuccessToast,
-  updateErrorToast,
   updateSuccessToast
 } from "@/toasts/reference.service.toast.ts";
+import type {ServiceError} from "@/services/types.ts";
+import type {Page} from "@/components/references/types.ts";
+import type {LocationQuery} from "vue-router";
+import type {Options} from "ky";
 
-export const referenceService = (referenceName: string, toast: ToastServiceMethods) => {
+const ABORT_ERROR = "AbortError";
+
+export function referenceService<T>(referenceName: string, toast: ToastServiceMethods, disableToastOnSuccess = false) {
+  if (referenceName === "") return;
   return {
-    create: async (body: object) =>
-      api.post(`references/${referenceName}`, {json: body})
-        .then(() => toast.add(createSuccessToast(referenceName)))
-        .catch(() => toast.add(createErrorToast(referenceName))),
-    getAll: async () =>
-      api.get(`references/${referenceName}`)
-        .then(() => toast.add(getSuccessToast(referenceName)))
-        .catch(() => toast.add(getErrorToast(referenceName))),
-    get: async (id: number) =>
-      api.get(`references/${referenceName}/${id}`)
-        .then(() => toast.add(getSuccessToast(referenceName)))
-        .catch(() => toast.add(getErrorToast(referenceName))),
-    delete: async (id: number) =>
-      api.delete(`references/${referenceName}/${id}`)
-        .then(() => toast.add(deleteSuccessToast(referenceName)))
-        .catch(() => toast.add(deleteErrorToast(referenceName))),
-    update: async (id: number, body: object) =>
-      api.patch(`references/${referenceName}/${id}`, {json: body})
-        .then(() => toast.add(updateSuccessToast(referenceName)))
-        .catch(() => toast.add(updateErrorToast(referenceName)))
+    create: async (body: object, options?: Options) =>
+      api.post<T>(`references/${referenceName}`, {json: body, ...options})
+        .then((response) => {
+          if (!disableToastOnSuccess) toast.add(createSuccessToast(referenceName));
+          return response.json<T>();
+        })
+        .catch((err) => {
+          if (err.name === ABORT_ERROR) return {abort: true};
+          toast.add(createErrorToast(referenceName));
+          return {error: true} as ServiceError;
+        }),
+    getAll: async (query: LocationQuery, options?: Options) =>
+      api.get<T>(`references/${referenceName}`, {
+        searchParams: {
+          page: query.page as string ?? "0",
+          size: query.size as string ?? "20"
+        },
+        ...options
+      })
+        .then((response) => {
+          if (!disableToastOnSuccess) toast.add(getSuccessToast(referenceName));
+          return response.json<Page<T>>();
+        })
+        .catch((err) => {
+          if (err.name === ABORT_ERROR) return {abort: true};
+          toast.add(createErrorToast(referenceName));
+          return {error: true} as ServiceError;
+        }),
+    get: async (id: number, options?: Options) =>
+      api.get<T>(`references/${referenceName}/${id}`, options)
+        .then((response) => {
+          if (!disableToastOnSuccess) toast.add(getSuccessToast(referenceName));
+          return response.json<T>();
+        })
+        .catch((err) => {
+          if (err.name === ABORT_ERROR) return {abort: true};
+          toast.add(createErrorToast(referenceName));
+          return {error: true} as ServiceError;
+        }),
+    delete: async (id: number, options?: Options) =>
+      api.delete(`references/${referenceName}/${id}`, options)
+        .then(() => {
+          if (!disableToastOnSuccess) toast.add(deleteSuccessToast(referenceName));
+        })
+        .catch((err) => {
+          if (err.name === ABORT_ERROR) return {abort: true};
+          toast.add(createErrorToast(referenceName));
+          return {error: true} as ServiceError;
+        }),
+    update: async (id: number, body: object, options?: Options) =>
+      api.patch<T>(`references/${referenceName}/${id}`, {json: body, ...options})
+        .then((response) => {
+          if (!disableToastOnSuccess) toast.add(updateSuccessToast(referenceName));
+          return response.json<T>();
+        })
+        .catch((err) => {
+          if (err.name === ABORT_ERROR) return {abort: true};
+          toast.add(createErrorToast(referenceName));
+          return {error: true} as ServiceError;
+        })
   };
-};
+}

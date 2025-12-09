@@ -29,13 +29,13 @@ const router = createRouter({
       name: "references",
       path: "/references",
       component: ReferencesView, // todo: dynamic import
-      meta: {requiresAuth: true},
+      meta: {requiresAuth: true, requiredRole: "reference-manager"},
       children: [
         {
           name: "references-select",
           path: ":name",
           component: ReferencesView, // todo: dynamic import
-          meta: {requiresAuth: true}
+          meta: {requiresAuth: true, requiredRole: "reference-manager"}
         }
       ]
     },
@@ -53,13 +53,23 @@ router.addRoute({
 });
 
 router.beforeEach((to, from, next) => {
-  const {isAuthenticated} = useAuthStore();
+  const auth = useAuthStore();
 
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
-    next({name: "error"});
-  } else {
-    next();
+  const requiresAuth = to.meta.requiresAuth === true;
+  const requiredRole = to.meta.requiredRole as string | undefined;
+
+  // 1. User must be authenticated
+  if (requiresAuth && !auth.isAuthenticated) {
+    return next({name: "error"}); // or login page, or forbidden page
   }
+
+  // 2. If a role is required, user must have it
+  if (requiredRole && !auth.hasRole(requiredRole)) {
+    return next({name: "error"}); // or a "forbidden" page
+  }
+
+  // Pass through when no conditions block it
+  next();
 });
 
 export default router;

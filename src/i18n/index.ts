@@ -4,7 +4,7 @@ import enUS from "@/i18n/locales/en-US.json";
 export type MessageSchema = typeof enUS;
 
 const i18n = createI18n<[MessageSchema]>({
-  // todo: remove this later
+  // todo: remove this later. it is required with composition api.
   legacy: false,
   fallbackLocale: "en",
   messages: {

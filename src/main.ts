@@ -8,6 +8,7 @@ import toastService from "primevue/toastservice";
 import i18n from "@/i18n";
 import roleRequiredDirective from "@/directives/role.required.directive.ts";
 import {basePreset} from "@/themes/base.theme.ts";
+import {useAuthStore} from "@/stores/auth.store.ts";
 
 const app = createApp(App);
 
@@ -19,4 +20,7 @@ app.use(toastService);
 
 app.directive(roleRequiredDirective.name, roleRequiredDirective.directive);
 
-app.mount("#app");
+const {init} = useAuthStore();
+
+init()
+  .then(() => app.mount("#app"));

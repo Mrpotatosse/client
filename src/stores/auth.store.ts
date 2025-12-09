@@ -8,17 +8,16 @@ export const useAuthStore =
     const token = ref<string>();
     const roles = ref<string[]>([]);
 
-    const init = async () => {
-      await keycloak
-        .init({
-          onLoad: "check-sso",
-          silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
-        })
-        .then(a => authenticated.value = a);
-    };
+    const init = async () => await keycloak
+      .init({
+        onLoad: "check-sso",
+        silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`,
+        redirectUri: window.location.pathname === "/error" ? window.location.origin : undefined
+      })
+      .then(a => authenticated.value = a);
 
     const login = async () => await keycloak
-      .login({redirectUri: window.location.href})
+      .login({redirectUri: window.location.pathname === "/error" ? window.location.origin : window.location.href})
       .then(() => authenticated.value = keycloak.authenticated);
 
     const logout = async () => await keycloak
@@ -35,11 +34,13 @@ export const useAuthStore =
     const updateData = () => {
       token.value = keycloak.token;
       roles.value = keycloak.tokenParsed?.realm_access?.roles ?? [];
+      authenticated.value = keycloak.token !== undefined;
     };
 
-    const clearData = () => {
+    const clearData = async () => {
       token.value = undefined;
       roles.value = [];
+      authenticated.value = false;
     };
 
     keycloak.onAuthSuccess = updateData;

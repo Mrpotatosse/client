@@ -12,8 +12,9 @@ import {useToast} from "primevue";
 
 const toast = useToast();
 
-const test = () => referenceService("test", toast).create({
-  label: "this is ok2",
+// todo: remove this shit
+const test = () => referenceService("test", toast)?.create({
+  label: "this is ok2" + (Math.random() * 99999999),
   description: ",,???"
 });
 const test2 = () => api.get("references/test/okok");

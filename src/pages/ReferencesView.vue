@@ -9,22 +9,23 @@
              class="basis-1/4 shrink-0 h-full overflow-auto"
              option-label="label"
              @update:model-value="update"/>
-    <Panel class="flex-1 h-full">
-      Test
-    </Panel>
+    <TnReferencePanel v-model="selectedReference"
+                      class="flex-1 h-full">
+      {{ selectedReference?.value }}
+    </TnReferencePanel>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {type ReferenceItem, referencesItems} from "@/globals/references.global.ts";
-import {useRoute, useRouter} from "vue-router";
-import {ref} from "vue";
+import {useRouter} from "vue-router";
+import {computed} from "vue";
+import TnReferencePanel from "@/components/references/TnReferencePanel.vue";
 
 const router = useRouter();
-const route = useRoute();
 
-const selectedReference = ref<ReferenceItem | undefined>(referencesItems
-  .find(r => r.value === route.params.name));
+const selectedReference = computed<ReferenceItem | undefined>(() => referencesItems
+  .find(r => r.value === router.currentRoute.value.params.name));
 
 const update = async (item?: ReferenceItem) => {
   if (item)
