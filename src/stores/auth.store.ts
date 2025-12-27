@@ -1,53 +1,92 @@
 import {defineStore} from "pinia";
-import {computed, ref} from "vue";
-import {keycloak} from "@/globals/keycloak.global.ts";
+import {oidc} from "@/globals/oidc.global.ts";
+import {jwtDecode} from "jwt-decode";
+import type {ToastServiceMethods} from "primevue";
+import {userExpiredToast, userLoadedToast, userUnloadedToast} from "@/toasts/auth.store.toast.ts";
+import type {AuthState, KeycloakToken} from "@/stores/auth.store.types.ts";
 
-export const useAuthStore =
-  defineStore("auth", () => {
-    const authenticated = ref(false);
-    const token = ref<string>();
-    const roles = ref<string[]>([]);
 
-    const init = async () => await keycloak
-      .init({
-        onLoad: "check-sso",
-        silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`,
-        redirectUri: window.location.pathname === "/error" ? window.location.origin : undefined
-      })
-      .then(a => authenticated.value = a);
+export const useAuthStore = defineStore("auth", {
+  state: (): AuthState => ({
+    user: undefined,
+    keycloak: undefined,
+    _eventsBound: false,
+  }),
 
-    const login = async () => await keycloak
-      .login({redirectUri: window.location.pathname === "/error" ? window.location.origin : window.location.href})
-      .then(() => authenticated.value = keycloak.authenticated);
+  getters: {
+    isAuthenticated: state => !!state.user && !state.user.expired,
+  },
 
-    const logout = async () => await keycloak
-      .logout({redirectUri: window.location.origin})
-      .then(() => authenticated.value = keycloak.authenticated);
+  actions: {
+    async init() {
+      // Called on /auth/callback
+      const user = await oidc.signinRedirectCallback();
+      await this.updateData(user);
+    },
 
-    const hasRole = (role: string) => {
-      if (roles.value.length === 0) return false;
-      return roles.value.some(r => r === role);
-    };
+    async bootstrap() {
+      await this.updateData(undefined);
+    },
 
-    const isAuthenticated = computed(() => authenticated);
+    async login() {
+      await oidc.signinRedirect({
+        redirect_uri: `${window.origin}/auth/callback`,
+      });
+    },
 
-    const updateData = () => {
-      token.value = keycloak.token;
-      roles.value = keycloak.tokenParsed?.realm_access?.roles ?? [];
-      authenticated.value = keycloak.token !== undefined;
-    };
+    async logout() {
+      this.clearData();
+      await oidc.signoutSilent();
+    },
 
-    const clearData = async () => {
-      token.value = undefined;
-      roles.value = [];
-      authenticated.value = false;
-    };
+    async updateData(user?: AuthState["user"]) {
+      if (!user) {
+        user = await oidc.getUser(false);
+      }
 
-    keycloak.onAuthSuccess = updateData;
-    keycloak.onAuthRefreshSuccess = updateData;
+      this.user = user ?? undefined;
 
-    keycloak.onAuthError = clearData;
-    keycloak.onAuthRefreshError = clearData;
+      this.keycloak = this.user
+        ? jwtDecode<KeycloakToken>(this.user.access_token)
+        : undefined;
+    },
 
-    return {init, login, logout, isAuthenticated, token, roles, hasRole};
-  });
+    clearData() {
+      this.user = undefined;
+      this.keycloak = undefined;
+    },
+
+    hasRole(role: string): boolean {
+      return this.isAuthenticated && (this.keycloak?.realm_access?.roles?.includes(role) ?? false);
+    },
+
+    bindOidcEvents(toast: ToastServiceMethods, events?: {
+      onUserLoad?: () => Promise<void>,
+      onUserUnload?: () => Promise<void>,
+      onTokenExpired?: () => Promise<void>
+    }) {
+      // Prevent double-binding
+      if (this._eventsBound) return;
+      this._eventsBound = true;
+
+      oidc.events.addUserLoaded(async user => {
+        await this.updateData(user);
+        if (this.keycloak)
+          toast.add(userLoadedToast(this.keycloak));
+        await events?.onUserLoad?.();
+      });
+
+      oidc.events.addUserUnloaded(async () => {
+        this.clearData();
+        toast.add(userUnloadedToast());
+        await events?.onUserUnload?.();
+      });
+
+      oidc.events.addAccessTokenExpired(async () => {
+        this.clearData();
+        toast.add(userExpiredToast());
+        await events?.onTokenExpired?.();
+      });
+    }
+  },
+});

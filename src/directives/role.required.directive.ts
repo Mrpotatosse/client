@@ -46,4 +46,4 @@ const directive: Directive<RoleRequiredElement, string> = {
   }
 };
 
-export default {name: "role-required", directive};
+export default directive;

@@ -7,7 +7,7 @@
 }
 
 html {
-  @apply w-full h-full;
+  @apply w-full h-full text-sm;
 }
 
 body {
@@ -26,6 +26,10 @@ body {
   @apply w-full h-full flex justify-center items-center;
 }
 
+.flex-centered {
+  @apply flex justify-center items-center;
+}
+
 .full {
   @apply w-full h-full;
 }
@@ -35,5 +39,37 @@ body {
 }
 
 .tn-modal {
-  @apply w-full h-full top-0 left-0 bg-black/30 backdrop-blur-xs absolute flex justify-center items-center;
+  @apply z-50 w-full h-full max-h-full top-0 left-0 bg-[var(--background-color)] backdrop-blur-xs absolute flex justify-center items-center;
+}
+
+.tn-form {
+  @apply flex flex-col gap-4;
+}
+
+.tn-primitive-form-input {
+  @apply flex flex-col w-full gap-1;
+
+  .tn-primitive-input {
+    @apply flex flex-col gap-4;
+  }
+}
+
+.p-button {
+  max-width: calc(var(--spacing) * 40) !important;
+
+  .p-button-label {
+    @apply truncate;
+  }
+}
+
+.required-star {
+  @apply text-red-500;
+}
+
+.chevron {
+  transition: transform 150ms ease;
+}
+
+.chevron-rotate {
+  transform: rotate(180deg);
 }

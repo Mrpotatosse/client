@@ -1,5 +1,15 @@
-import type {NoContent} from "@/components/references/types.ts";
+export const noContent = {
+  _noContent: true
+} as const;
 
-export const noContent: NoContent = {
-  noContent: true
-};
+export const errorContent = {
+  _error: true
+} as const;
+
+export const abortContent = {
+  _abort: true
+} as const;
+
+export const loadingContent = {
+  _loading: true
+} as const;

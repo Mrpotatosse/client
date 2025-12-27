@@ -1,5 +1,5 @@
 export type NavbarItem = {
   label: string,
-  route: string,
+  route: string | object,
   role: string
 }

@@ -4,12 +4,12 @@ import type {NavbarItem} from "@/components/navbar/types.ts";
 export const navbarItems: NavbarItem[] = [
   {
     label: i18n.global.t("app.references"),
-    route: "references",
+    route: {name: "references"},
     role: "reference-manager"
   },
   {
     label: i18n.global.t("app.test"),
-    route: "about",
+    route: {name: "about"},
     role: "user"
   }
 ];

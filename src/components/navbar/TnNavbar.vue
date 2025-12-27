@@ -2,16 +2,19 @@
   <Toolbar>
     <template #start>
       <div class="flex gap-2">
-        <Button :text="!isSelected('home')"
+        <Button ref="homeButton"
+                :text="!isSelected('home')"
                 icon="pi pi-home"
                 severity="primary"
                 @click="router.push({name: 'home'})"/>
         <RouterLink v-for="(item, index) in props.items"
                     :key="index"
                     v-role-required="item.role"
-                    :to="{name: item.route}">
+                    :to="item.route">
           <Button :label="item.label"
-                  :text="!isSelected(item.route)"
+                  :text="!isSelected( (typeof item.route === 'object' && 'name' in item.route) ?
+                  item.route.name as string :
+                  item.route as string)"
                   severity="primary"/>
         </RouterLink>
       </div>
@@ -35,41 +38,51 @@ import {Menu, type MenuMethods} from "primevue";
 import {useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
 import type {NavbarItem} from "@/components/navbar/types.ts";
+import {storeToRefs} from "pinia";
 
-const {isAuthenticated, login, logout} = useAuthStore();
+const auth = useAuthStore();
+const {isAuthenticated} = storeToRefs(auth);
 const router = useRouter();
 const {t} = useI18n();
 
 const props = defineProps<{
   items: NavbarItem[]
 }>();
+const homeButton = ref<HTMLButtonElement>();
 const menu = ref<MenuMethods>();
-
 const menuItems = computed<MenuItem[]>(() => {
-  const list: MenuItem[] = [{
-    label: t("app.about"),
-    icon: "pi pi-info-circle",
-    command: () => router.push({name: "about"})
-  }];
-
   if (isAuthenticated.value) {
-    list.push({
-      label: t("app.profile"),
-      icon: "pi pi-user",
-      command: () => router.push({name: "profile"})
-    }, {
-      label: t("app.disconnect"),
-      icon: "pi pi-sign-out",
-      command: logout
-    });
-  } else {
-    list.push({
+    return [
+      {
+        label: t("app.about"),
+        icon: "pi pi-info-circle",
+        command: async () => await router.push({name: "about"})
+      },
+      {
+        label: t("app.profile"),
+        icon: "pi pi-user",
+        command: async () => await router.push({name: "profile"})
+      },
+      {
+        label: t("app.disconnect"),
+        icon: "pi pi-sign-out",
+        command: auth.logout
+      }
+    ];
+  }
+
+  return [
+    {
+      label: t("app.about"),
+      icon: "pi pi-info-circle",
+      command: async () => await router.push({name: "about"})
+    },
+    {
       label: t("app.connect"),
       icon: "pi pi-sign-in",
-      command: login
-    });
-  }
-  return list;
+      command: auth.login
+    }
+  ];
 });
 
 const toggle = (event: PointerEvent) => {
@@ -79,11 +92,7 @@ const toggle = (event: PointerEvent) => {
 const isSelected = (routeName: string) => {
   const route = router.currentRoute.value;
   if (!route) return false;
-
-  // current route name
   if (route.name === routeName) return true;
-
-  // any matched child route names
   return route.matched.some(r => r.name === routeName);
 };
 </script>
